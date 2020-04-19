@@ -4,7 +4,6 @@ module.exports = class extends think.Controller {
     this.ctx.state.token = this.ctx.header['x-token'] || '';
     const tokenSerivce = think.service('token', 'admin');
     this.ctx.state.userId = await tokenSerivce.getUserId(this.ctx.state.token);
-
     // 只允许登录操作
     if (this.ctx.controller !== 'auth') {
       if (this.ctx.state.userId <= 0) {

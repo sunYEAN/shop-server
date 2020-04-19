@@ -13,7 +13,9 @@ module.exports = class extends Base {
     const onSale = parseInt(this.get('onSale')) || 0; // 1在售、2下架
     const model = this.model('goods');
     // 搜索分类名称对应的id
-    const searchQuery = {};
+    const searchQuery = {
+      is_delete: 0
+    };
     if (name) { // 传入了商品名称
       searchQuery['name'] = ['like', `%${name}%`];
     }
@@ -37,8 +39,12 @@ module.exports = class extends Base {
     const id = this.get('id');
     const model = this.model('goods');
     const data = await model.where({id: id}).find();
+    const gallery = await this.model('goods_gallery').where({goods_id: id}).select();
 
-    return this.success(data);
+    return this.success({
+      ...data,
+      gallery
+    });
   }
 
   async storeAction() {
@@ -53,15 +59,31 @@ module.exports = class extends Base {
     values.is_on_sale = values.is_on_sale ? 1 : 0;
     values.is_new = values.is_new ? 1 : 0;
     values.is_hot = values.is_hot ? 1 : 0;
-    if (id > 0) {
+    if (id) {
       await model.where({id: id}).update(values);
     } else {
-      delete values.id;
+      console.log(values)
       await model.add(values);
     }
     return this.success(values);
   }
 
+  /**
+   * 删除商品
+   * @returns {Promise<void>}
+   */
+  async deleteAction () {
+    const id = this.post('id');
+    await this.model('goods').where({id: id}).update({is_delete: 1});
+    // TODO 删除图片
+
+    return this.success();
+  }
+
+  /**
+   * 销毁商品
+   * @returns {Promise<any>}
+   */
   async destoryAction() {
     const id = this.post('id');
     await this.model('goods').where({id: id}).limit(1).delete();

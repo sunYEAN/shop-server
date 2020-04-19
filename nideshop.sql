@@ -2764,7 +2764,7 @@ CREATE TABLE `nideshop_footprint` (
 -- ----------------------------
 DROP TABLE IF EXISTS `nideshop_goods`;
 CREATE TABLE `nideshop_goods` (
-  `id` int(11) unsigned NOT NULL,
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `category_id` int(11) unsigned NOT NULL DEFAULT '0',
   `goods_sn` varchar(60) NOT NULL DEFAULT '',
   `name` varchar(120) NOT NULL DEFAULT '',
