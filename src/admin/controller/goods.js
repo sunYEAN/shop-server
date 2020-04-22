@@ -39,7 +39,7 @@ module.exports = class extends Base {
     const id = this.get('id');
     const model = this.model('goods');
     const data = await model.where({id: id}).find();
-    const gallery = await this.model('goods_gallery').where({goods_id: id}).select();
+    const gallery = await this.model('goods_gallery').where({goods_id: id}).order({sort_order: 'asc'}).select();
 
     return this.success({
       ...data,
