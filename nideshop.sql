@@ -228,7 +228,7 @@ COMMIT;
 -- ----------------------------
 DROP TABLE IF EXISTS `nideshop_attribute_category`;
 CREATE TABLE `nideshop_attribute_category` (
-  `id` int(11) unsigned NOT NULL,
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(60) NOT NULL DEFAULT '',
   `enabled` tinyint(1) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
@@ -2782,17 +2782,17 @@ CREATE TABLE `nideshop_goods` (
   `extra_price` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '附加价格',
   `is_new` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `goods_unit` varchar(45) NOT NULL COMMENT '商品单位',
-  `primary_pic_url` varchar(255) NOT NULL COMMENT '商品主图',
-  `list_pic_url` varchar(255) NOT NULL COMMENT '商品列表图',
+  `primary_pic_url` varchar(255) NOT NULL DEFAULT '' COMMENT '商品主图',
+  `list_pic_url` varchar(255) NOT NULL DEFAULT '' COMMENT '商品列表图',
   `retail_price` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '零售价格',
   `sell_volume` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '销售量',
   `primary_product_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '主sku　product_id',
   `unit_price` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '单位价格，单价',
   `promotion_desc` varchar(255) NOT NULL DEFAULT '' COMMENT '促销描述',
   `promotion_tag` varchar(45) NOT NULL DEFAULT '' COMMENT '促销标签',
-  `app_exclusive_price` decimal(10,2) unsigned NOT NULL COMMENT 'APP专享价',
-  `is_app_exclusive` tinyint(1) unsigned NOT NULL COMMENT '是否是APP专属',
-  `is_limited` tinyint(1) unsigned NOT NULL,
+  `app_exclusive_price` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT 'APP专享价',
+  `is_app_exclusive` tinyint(1) unsigned NOT NULL  DEFAULT 0 COMMENT '是否是APP专属',
+  `is_limited` tinyint(1) unsigned NOT NULL DEFAULT 1,
   `is_hot` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `goods_sn` (`goods_sn`),
