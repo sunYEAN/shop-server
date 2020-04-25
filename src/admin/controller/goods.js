@@ -38,12 +38,26 @@ module.exports = class extends Base {
   async infoAction() {
     const id = this.get('id');
     const model = this.model('goods');
-    const data = await model.where({id: id}).find();
+    const data = await model
+        .fieldReverse(['attribute_category', 'category_id'])
+        .where({id: id}).find();
     const gallery = await this.model('goods_gallery').where({goods_id: id}).order({sort_order: 'asc'}).select();
+    const attributes = await this
+        .model('goods_attribute')
+        .field([
+          'nideshop_goods_attribute.id',
+          'nideshop_goods_attribute.value',
+          'nideshop_attribute.name'
+        ])
+        .join('nideshop_attribute ON nideshop_goods_attribute.attribute_id=nideshop_attribute.id')
+        .order({'nideshop_goods_attribute.id': 'asc'})
+        .where({'nideshop_goods_attribute.goods_id': id})
+        .select();
 
     return this.success({
       ...data,
-      gallery
+      gallery,
+      attributes
     });
   }
 
