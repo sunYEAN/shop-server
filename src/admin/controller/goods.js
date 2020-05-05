@@ -50,10 +50,13 @@ module.exports = class extends Base {
       .where({'nideshop_goods_attribute.goods_id': id})
       .select();
 
+    const specicification = await model.getGoodSpecification(id);
+
     return this.success({
       ...data,
       gallery,
-      attributes
+      attributes,
+      skus: specicification
     });
   }
 
@@ -70,9 +73,9 @@ module.exports = class extends Base {
     values.is_new = values.is_new ? 1 : 0;
     values.is_hot = values.is_hot ? 1 : 0;
     if (id) {
+        delete values.id;
       await model.where({id: id}).update(values);
     } else {
-      console.log(values)
       await model.add(values);
     }
     return this.success(values);
