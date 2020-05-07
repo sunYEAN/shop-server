@@ -11,7 +11,9 @@ module.exports = class extends Base {
     const name = this.get('name') || '';
 
     const model = this.model('user');
-    const data = await model.where({username: ['like', `%${name}%`]}).order(['id DESC']).page(page, size).countSelect();
+    const data = await model.where({
+      username: ['like', `%${name}%`]
+    }).order(['id DESC']).page(page, size).countSelect();
 
     return this.success(data);
   }

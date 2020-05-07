@@ -48,7 +48,6 @@ module.exports = class extends Base {
       .find();
     this.success(data);
   }
-  // 登出
   async logoutAction() {
     return this.success();
   }
