@@ -50,10 +50,13 @@ module.exports = class extends Base {
       .where({'nideshop_goods_attribute.goods_id': id})
       .select();
 
+    const specicification = await model.getGoodSpecification(id);
+
     return this.success({
       ...data,
       gallery,
-      attributes
+      attributes,
+      skus: specicification
     });
   }
 
@@ -61,18 +64,18 @@ module.exports = class extends Base {
     if (!this.isPost) {
       return false;
     }
-
-    const values = this.post();
-    const id = this.post('id');
-
     const model = this.model('goods');
-    values.is_on_sale = values.is_on_sale ? 1 : 0;
-    values.is_new = values.is_new ? 1 : 0;
-    values.is_hot = values.is_hot ? 1 : 0;
+    const values = this.post();
+    const {id} = values;
+
+    if (values.is_on_sale !== void 0) values.is_on_sale = values.is_on_sale ? 1 : 0;
+    if (values.is_new !== void 0) values.is_new = values.is_new ? 1 : 0;
+    if (values.is_hot !== void 0) values.is_hot = values.is_hot ? 1 : 0;
+
     if (id) {
+        delete values.id;
       await model.where({id: id}).update(values);
     } else {
-      console.log(values);
       await model.add(values);
     }
     return this.success(values);

@@ -7,7 +7,7 @@ module.exports = class extends Base {
    */
   async indexAction() {
     const model = this.model('category');
-    const data = await model.where({is_show: 1}).order(['sort_order ASC']).select();
+    const data = await model.where({is_delete: 0}).order(['sort_order ASC']).select();
     const topCategory = data.filter((item) => {
       return item.parent_id === 0;
     });
@@ -45,23 +45,28 @@ module.exports = class extends Base {
       return false;
     }
 
-    const values = this.post();
-    const id = this.post('id');
+    const params = this.post();
+    const { id, parent_id } = params;
+
+    if (!parent_id) params.level = 'L1';
+    else params.level = 'L2';
 
     const model = this.model('category');
-    values.is_show = values.is_show ? 1 : 0;
-    if (id > 0) {
-      await model.where({id: id}).update(values);
+    params.is_show = params.is_show ? 1 : 0;
+    if (id) {
+      await model.where({id}).update(params);
     } else {
-      delete values.id;
-      await model.add(values);
+      delete params.id;
+      await model.add(params);
     }
-    return this.success(values);
+    return this.success(params);
   }
 
-  async destoryAction() {
+  async deleteAction() {
     const id = this.post('id');
-    await this.model('category').where({id: id}).limit(1).delete();
+    await this.model('category').where({id}).limit(1).update({
+      is_delete: 1
+    });
     // TODO 删除图片
 
     return this.success();

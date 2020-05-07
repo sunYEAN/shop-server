@@ -5,8 +5,7 @@ module.exports = class extends think.Model {
    * @returns {Promise.<*>}
    */
   async getProductList(goodsId) {
-    const goods = await this.model('product').where({goods_id: goodsId}).select();
-    return goods;
+    return await this.model('product').where({goods_id: goodsId}).select();
   }
 
   /**
