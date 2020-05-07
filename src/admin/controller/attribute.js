@@ -1,6 +1,11 @@
 const Base = require('./base.js');
 
 module.exports = class extends Base {
+
+  /**
+   * 获取参数分类分页数据
+   * @returns {Promise<any | never>}
+   */
   async attributeAction() {
     const {page, size, id} = this.get();
     const model = this.model('attribute');
@@ -8,7 +13,9 @@ module.exports = class extends Base {
     // console.log(page, size);
 
     // 搜索分类名称对应的id
-    const searchQuery = {};
+    const searchQuery = {
+      is_delete: 0
+    };
     if (id) { // 传入了参数id
       searchQuery['attribute_category_id'] = id;
     }
@@ -33,6 +40,10 @@ module.exports = class extends Base {
     return this.success(data);
   }
 
+  /**
+   * 新增分类
+   * @returns {Promise<void>}
+   */
   async categoryAction() {
     let model = this.model('attribute_category');
     const params = await model
@@ -46,7 +57,11 @@ module.exports = class extends Base {
     this.success(params);
   }
 
-  async storeAction () {
+  /**
+   * 新增或者更新分类
+   * @returns {Promise<void>}
+   */
+  async storeCategoryAction() {
     let params = this.post();
     let id = params.id;
     let model = this.model('attribute_category');
@@ -59,6 +74,34 @@ module.exports = class extends Base {
       res = await model.add(params);
     }
 
+    this.success(res);
+  }
+
+  async storeAction() {
+    let params = this.post(),
+      model = this.model('attribute'),
+      id = params.id,
+      res;
+
+    if (id) {
+      delete params.id;
+      res = await model.where({id}).update(params);
+    } else {
+      res = await model.add(params);
+    }
+    this.success(res);
+  }
+
+  async deleteAttributeAction() {
+    const params = this.post();
+    if (!params.id) return this.fail('请传入attribute的id');
+    const res = await this.model('attribute')
+      .where({
+        id: params.id
+      })
+      .update({
+        is_delete: 1
+      });
     this.success(res);
   }
 };

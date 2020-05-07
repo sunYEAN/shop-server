@@ -72,7 +72,7 @@ module.exports = class extends Base {
     if (id) {
       await model.where({id: id}).update(values);
     } else {
-      console.log(values)
+      console.log(values);
       await model.add(values);
     }
     return this.success(values);
