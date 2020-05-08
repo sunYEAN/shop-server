@@ -3,7 +3,7 @@ const md5 = require('md5');
 const rp = require('request-promise');
 
 module.exports = class extends think.Service {
-  async login(code, fullUserInfo) {
+  async login(code, fullUserInfo, wxapp) {
     try {
       // 获取 session
       const options = {
@@ -12,8 +12,8 @@ module.exports = class extends think.Service {
         qs: {
           grant_type: 'authorization_code',
           js_code: code,
-          secret: think.config('weixin.secret'),
-          appid: think.config('weixin.appid')
+          secret: wxapp.app_secret,
+          appid: wxapp.app_id
         }
       };
 
@@ -30,8 +30,7 @@ module.exports = class extends think.Service {
       }
 
       // 解析用户数据
-      const wechatUserInfo = await this.decryptUserInfoData(sessionData.session_key, fullUserInfo.encryptedData, fullUserInfo.iv);
-      return wechatUserInfo;
+      return await this.decryptUserInfoData(sessionData.session_key, fullUserInfo.encryptedData, fullUserInfo.iv, wxapp);
     } catch (e) {
       return { errno: 400, errmsg: '微信登录失败：' + e.message, data: null };
     }
@@ -42,9 +41,10 @@ module.exports = class extends think.Service {
    * @param sessionKey
    * @param encryptedData
    * @param iv
+   * @param wxapp
    * @returns {Promise.<string>}
    */
-  async decryptUserInfoData(sessionKey, encryptedData, iv) {
+  async decryptUserInfoData(sessionKey, encryptedData, iv, wxapp) {
     let decoded = '';
     try {
       const _sessionKey = Buffer.from(sessionKey, 'base64');
@@ -57,7 +57,7 @@ module.exports = class extends think.Service {
       decoded = decipher.update(encryptedData, 'binary', 'utf8');
       decoded += decipher.final('utf8');
       const userInfo = JSON.parse(decoded);
-      if (userInfo.watermark.appid !== think.config('weixin.appid')) {
+      if (userInfo.watermark.appid !== wxapp.app_id) {
         return { errno: 400, errmsg: 'watermark appid 错误', data: null };
       }
 
@@ -82,13 +82,13 @@ module.exports = class extends think.Service {
    * @param payInfo
    * @returns {Promise}
    */
-  createUnifiedOrder(payInfo) {
+  createUnifiedOrder(payInfo, wxapp) {
     const WeiXinPay = require('weixinpay');
     const weixinpay = new WeiXinPay({
-      appid: think.config('weixin.appid'), // 微信小程序appid
+      appid: wxapp.app_id, // 微信小程序appid
       openid: payInfo.openid, // 用户openid
-      mch_id: think.config('weixin.mch_id'), // 商户帐号ID
-      partner_key: think.config('weixin.partner_key') // 秘钥
+      mch_id: wxapp.mchid, // 商户帐号ID
+      partner_key: wxapp.apikey // 秘钥
     });
     return new Promise((resolve, reject) => {
       weixinpay.createUnifiedOrder({
