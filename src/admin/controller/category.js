@@ -27,7 +27,7 @@ module.exports = class extends Base {
 
   async topCategoryAction() {
     const model = this.model('category');
-    const data = await model.where({parent_id: 0}).order(['id ASC']).select();
+    const data = await model.where({parent_id: 0, is_delete: 0}).order(['id ASC']).select();
 
     return this.success(data);
   }
@@ -64,9 +64,7 @@ module.exports = class extends Base {
 
   async deleteAction() {
     const id = this.post('id');
-    await this.model('category').where({id}).limit(1).update({
-      is_delete: 1
-    });
+    await this.model('category').where({id}).limit(1).update({is_delete: 1});
     // TODO 删除图片
 
     return this.success();

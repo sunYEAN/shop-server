@@ -9,7 +9,8 @@ module.exports = class extends Base {
 
         // 搜索分类名称对应的id
         const searchQuery = {
-            "nideshop_attribute.is_delete": 0
+            "nideshop_attribute.is_delete": 0,
+            "nideshop_attribute_category.is_delete": 0
         };
         if (id) { // 传入了参数id
             searchQuery['attribute_category_id'] = id;
@@ -17,7 +18,6 @@ module.exports = class extends Base {
         const data = await model
             .where(searchQuery)
             .field([
-                'nideshop_attribute.enabled as attr_enabled',
                 'nideshop_attribute.id',
                 'nideshop_attribute.name',
                 'nideshop_attribute.input_type',
@@ -25,7 +25,6 @@ module.exports = class extends Base {
                 'nideshop_attribute.sort_order',
                 'nideshop_attribute_category.id as attribute_category_id',
                 'nideshop_attribute_category.name as attribute_category_name',
-                'nideshop_attribute_category.enabled as cate_enabled',
             ])
             .join('nideshop_attribute_category ON nideshop_attribute_category.id=nideshop_attribute.attribute_category_id')
             .order(['nideshop_attribute.id DESC'])
@@ -41,7 +40,6 @@ module.exports = class extends Base {
             .field([
                 'id',
                 'name',
-                'enabled as cate_enabled',
             ])
             .where({
                 is_delete: 0

@@ -9,9 +9,13 @@ module.exports = class extends Base {
     const categoryId = this.get('id');
 
     const model = this.model('category');
-    const data = await model.limit(10).where({parent_id: 0}).select();
+
+    // 获取顶级分类
+    const data = await model.limit(10).where({parent_id: 0, is_delete: 0}).select();
 
     let currentCategory = null;
+
+    // 如果传入了ID
     if (categoryId) {
       currentCategory = await model.where({'id': categoryId}).find();
     }
@@ -22,7 +26,7 @@ module.exports = class extends Base {
 
     // 获取子分类数据
     if (currentCategory && currentCategory.id) {
-      currentCategory.subCategoryList = await model.where({'parent_id': currentCategory.id}).select();
+      currentCategory.subCategoryList = await model.where({parent_id: currentCategory.id, is_delete: 0}).select();
     }
 
     return this.success({
@@ -41,7 +45,7 @@ module.exports = class extends Base {
     }
     // 获取子分类数据
     if (currentCategory && currentCategory.id) {
-      currentCategory.subCategoryList = await model.where({'parent_id': currentCategory.id}).select();
+      currentCategory.subCategoryList = await model.where({'parent_id': currentCategory.id, is_delete: 0}).select();
     }
 
     return this.success({
