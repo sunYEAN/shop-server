@@ -7,13 +7,12 @@ module.exports = class extends think.Controller {
 
         // 获取微信小程序id 对应的小程序数据
         // 先读取
-        await this.cache(wxapp_id, null);
         let app = await this.cache(wxapp_id);
         if (think.isEmpty(app)) { // 不存在，则读取数据库的app数据，缓存起来
             const wxapp = await this.model('wxapp').where({wxapp_id}).find();
             if (!think.isEmpty(wxapp)) {
                 await this.cache(wxapp_id, JSON.stringify(wxapp));
-            }
+            } else return this.fail('该小程序wxapp_id不存在')
         }
 
         // 获取微信小程序的详情
