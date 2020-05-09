@@ -2,21 +2,24 @@ module.exports = class extends think.Model {
   /**
    * 该good对应products商品列表
    * 获取商品的product
-   * @param goodsId
+   * @param goods_id
+   * @param wxapp_id
    * @returns {Promise.<*>}
    */
-  async getProductList(goodsId) {
-    const products = await this.model('product').where({goods_id: goodsId}).select();
-    console.log(products);
-    return products;
+  async getProductList(goods_id, wxapp_id) {
+    return await this.model('product').where({
+      goods_id,
+      wxapp_id,
+    }).select();
   }
 
   /**
    * 获取商品的规格信息
-   * @param goodsId
+   * @param goods_id
+   * @param wxapp_id
    * @returns {Promise.<Array>}
    */
-  async getSpecificationList(goodsId) {
+  async getSpecificationList(goods_id, wxapp_id) {
     const specificationRes = await this.model('goods_specification').alias('gs')
       .field('gs.*, s.name')
       .join({
@@ -25,7 +28,10 @@ module.exports = class extends think.Model {
         as: 's',
         on: ['specification_id', 'id']
       })
-      .where({goods_id: goodsId}).select();
+      .where({
+        goods_id,
+        's.wxapp_id': wxapp_id
+      }).select();
 
 
     const specificationList = [];

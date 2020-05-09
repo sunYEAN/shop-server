@@ -8,7 +8,6 @@ module.exports = {
     'topic',
     'auth',
     'goods',
-    'brand',
     'search',
     'region'
   ],

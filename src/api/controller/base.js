@@ -1,22 +1,41 @@
 module.exports = class extends think.Controller {
+    getWxAppId () {
+        const wxapp_id = this.header('wxapp_id') || '';
+        if (!wxapp_id) return this.fail('请检查header中是否存在参数wxapp_id');
+        return wxapp_id;
+    }
+
+    async getWxApp (wxapp_id) {
+        const app = await this.cache(wxapp_id); // 当前缓存中有没有这个微信商铺的信息
+        if (think.isEmpty(app)) { // 空的，去数据库查询
+            const wxapp = await this.model('wxapp').where({wxapp_id}).find();
+            console.log(think.isEmpty(wxapp));
+            if (think.isEmpty(wxapp)) return this.fail('该小程序wxapp_id不存在');
+            await this.cache(wxapp_id, JSON.stringify(wxapp));
+        }
+        const w = await this.cache(wxapp_id);
+        return JSON.parse(w);
+    }
     async __before() {
         // 根据token值获取用户id
 
-        const wxapp_id = this.header('wxapp_id');
-        if (!wxapp_id) return this.fail('请检查header中是否存在参数wxapp_id');
+
 
         // 获取微信小程序id 对应的小程序数据
-        // 先读取
-        let app = await this.cache(wxapp_id);
-        if (think.isEmpty(app)) { // 不存在，则读取数据库的app数据，缓存起来
+        let wxapp_id = this.header('wxapp_id');
+        if (!wxapp_id) return this.fail('请在header中传入参数wxapp_id');
+
+        const app = await this.cache(wxapp_id); // 当前缓存中有没有这个微信商铺的信息
+        if (think.isEmpty(app)) { // 空的，去数据库查询
             const wxapp = await this.model('wxapp').where({wxapp_id}).find();
-            if (!think.isEmpty(wxapp)) {
-                await this.cache(wxapp_id, JSON.stringify(wxapp));
-            } else return this.fail('该小程序wxapp_id不存在')
+            if (think.isEmpty(wxapp)) return this.fail('该小程序wxapp_id不存在');
+            await this.cache(wxapp_id, JSON.stringify(wxapp));
         }
+        let w = await this.cache(wxapp_id);
+        w = JSON.parse(w);
 
         // 获取微信小程序的详情
-        this.ctx.state[wxapp_id] = JSON.parse(await this.cache(wxapp_id));
+        this.ctx.state[wxapp_id] = w;
 
         this.ctx.state.token = this.ctx.header['x-nideshop-token'] || '';
 

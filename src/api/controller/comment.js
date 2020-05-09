@@ -12,13 +12,15 @@ module.exports = class extends Base {
    * @returns {Promise.<*|PreventPromise|void|Promise>}
    */
   async postAction() {
-    const typeId = this.post('typeId');
-    const valueId = this.post('valueId');
+    const type_id = this.post('typeId');
+    const value_id = this.post('valueId');
+    const wxapp_id = this.header('wxapp_id');
     const content = this.post('content');
     const buffer = Buffer.from(content);
     const insertId = await this.model('comment').add({
-      type_id: typeId,
-      value_id: valueId,
+      type_id,
+      value_id,
+      wxapp_id,
       content: buffer.toString('base64'),
       add_time: this.getTime(),
       user_id: this.getLoginUserId()
@@ -32,10 +34,11 @@ module.exports = class extends Base {
   }
 
   async countAction() {
-    const typeId = this.get('typeId');
-    const valueId = this.get('valueId');
+    const type_id = this.get('typeId');
+    const value_id = this.get('valueId');
+    const wxapp_id = this.header('wxapp_id');
 
-    const allCount = await this.model('comment').where({type_id: typeId, value_id: valueId}).count('id');
+    const allCount = await this.model('comment').where({type_id, value_id, wxapp_id}).count('id');
 
     const hasPicCount = await this.model('comment').alias('comment')
       .join({
@@ -43,7 +46,11 @@ module.exports = class extends Base {
         join: 'right',
         alias: 'comment_picture',
         on: ['id', 'comment_id']
-      }).where({'comment.type_id': typeId, 'comment.value_id': valueId}).count('comment.id');
+      }).where({
+        'comment.type_id': type_id,
+        'comment.value_id': value_id,
+        'comment.wxapp_id': wxapp_id,
+      }).count('comment.id');
 
     return this.success({
       allCount: allCount,
@@ -52,8 +59,9 @@ module.exports = class extends Base {
   }
 
   async listAction() {
-    const typeId = this.get('typeId');
-    const valueId = this.get('valueId');
+    const type_id = this.get('typeId');
+    const wxapp_id = this.header('wxapp_id');
+    const value_id = this.get('valueId');
     const showType = this.get('showType'); // 选择评论的类型 0 全部， 1 只显示图片
 
     const page = this.get('page');
@@ -62,8 +70,9 @@ module.exports = class extends Base {
     let comments = [];
     if (showType !== 1) {
       comments = await this.model('comment').where({
-        type_id: typeId,
-        value_id: valueId
+        type_id,
+        value_id,
+        wxapp_id
       }).page(page, size).countSelect();
     } else {
       comments = await this.model('comment').alias('comment')
@@ -73,7 +82,11 @@ module.exports = class extends Base {
           join: 'right',
           alias: 'comment_picture',
           on: ['id', 'comment_id']
-        }).page(page, size).where({'comment.type_id': typeId, 'comment.value_id': valueId}).countSelect();
+        }).page(page, size).where({
+          'comment.type_id': type_id,
+          'comment.value_id': value_id,
+          'comment.wxapp_id': wxapp_id,
+        }).countSelect();
     }
 
     const commentList = [];
@@ -84,8 +97,8 @@ module.exports = class extends Base {
       comment.value_id = commentItem.value_id;
       comment.id = commentItem.id;
       comment.add_time = think.datetime(new Date(commentItem.add_time * 1000));
-      comment.user_info = await this.model('user').field(['username', 'avatar', 'nickname']).where({id: commentItem.user_id}).find();
-      comment.pic_list = await this.model('comment_picture').where({comment_id: commentItem.id}).select();
+      comment.user_info = await this.model('user').field(['username', 'avatar', 'nickname']).where({id: commentItem.user_id, wxapp_id}).find();
+      comment.pic_list = await this.model('comment_picture').where({comment_id: commentItem.id, wxapp_id}).select();
       commentList.push(comment);
     }
     comments.data = commentList;

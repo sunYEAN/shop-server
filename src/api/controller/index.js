@@ -7,10 +7,6 @@ module.exports = class extends Base {
       wxapp_id = this.header('wxapp_id');
     const banner = await this.model('ad').where({ad_position_id: 1, wxapp_id}).select();
     const channel = await this.model('channel').where({wxapp_id}).order('sort_order asc').select();
-    const brandList = await this.model('brand').where({
-      is_new: 1,
-      wxapp_id
-    }).order('new_sort_order asc').limit(4).select();
     const topicList = await this.model('topic').where({wxapp_id}).limit(3).select();
 
     // 获取最新的商品
@@ -67,7 +63,6 @@ module.exports = class extends Base {
       channel: channel,
       newGoodsList: newGoods,
       hotGoodsList: hotGoods,
-      brandList: brandList,
       topicList: topicList,
       categoryList: newCategoryList,
     });

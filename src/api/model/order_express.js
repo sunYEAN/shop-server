@@ -5,10 +5,10 @@ module.exports = class extends think.Model {
 
   /**
    * 获取最新的订单物流信息
-   * @param orderId
+   * @param order_id
    * @returns {Promise.<*>}
    */
-  async getLatestOrderExpress(orderId) {
+  async getLatestOrderExpress(order_id, wxapp_id) {
     const returnExpressInfo = {
       shipper_code: '',
       shipper_name: '',
@@ -17,7 +17,7 @@ module.exports = class extends think.Model {
       request_time: 0,
       traces: []
     };
-    const orderExpress = await this.where({ order_id: orderId }).find();
+    const orderExpress = await this.where({ order_id, wxapp_id }).find();
     if (think.isEmpty(orderExpress)) {
       return returnExpressInfo;
     }
