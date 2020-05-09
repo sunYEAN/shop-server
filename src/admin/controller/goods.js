@@ -46,7 +46,7 @@ module.exports = class extends Base {
     const attributes = await this
       .model('goods_attribute')
       .join('nideshop_attribute ON nideshop_goods_attribute.attribute_id=nideshop_attribute.id')
-      .order({'nideshop_goods_attribute.id': 'asc'})
+      .order('nideshop_goods_attribute.id asc')
       .where({'nideshop_goods_attribute.goods_id': id})
       .select();
 
