@@ -6,8 +6,9 @@ module.exports = class extends Base {
     const fullUserInfo = this.post('userInfo');
     const clientIp = this.ctx.ip;
 
+    const wxapp = this.ctx.state[this.header('wxapp_id') || ''] || {};
     // 解释用户数据
-    const { errno, errmsg, data: userInfo } = await this.service('weixin', 'api').login(code, fullUserInfo);
+    const { errno, errmsg, data: userInfo } = await this.service('weixin', 'api').login(code, fullUserInfo, wxapp);
     if (errno !== 0) {
       return this.fail(errno, errmsg);
     }
