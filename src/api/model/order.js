@@ -12,10 +12,11 @@ module.exports = class extends think.Model {
 
   /**
    * 获取订单可操作的选项
-   * @param orderId
+   * @param order_id
+   * @param wxapp_id
    * @returns {Promise.<{cancel: boolean, delete: boolean, pay: boolean, comment: boolean, delivery: boolean, confirm: boolean, return: boolean}>}
    */
-  async getOrderHandleOption(orderId) {
+  async getOrderHandleOption(order_id, wxapp_id) {
     const handleOption = {
       cancel: false, // 取消操作
       delete: false, // 删除操作
@@ -27,7 +28,7 @@ module.exports = class extends think.Model {
       buy: false // 再次购买
     };
 
-    const orderInfo = await this.where({id: orderId}).find();
+    const orderInfo = await this.where({id: order_id, wxapp_id}).find();
 
     // 订单流程：下单成功－》支付订单－》发货－》收货－》评论
     // 订单相关状态字段设计，采用单个字段表示全部的订单状态
@@ -69,8 +70,8 @@ module.exports = class extends think.Model {
     return handleOption;
   }
 
-  async getOrderStatusText(orderId) {
-    const orderInfo = await this.where({id: orderId}).find();
+  async getOrderStatusText(orderId, wxapp_id) {
+    const orderInfo = await this.where({id: orderId, wxapp_id}).find();
     let statusText = '未付款';
     switch (orderInfo.order_status) {
       case 0:
@@ -87,8 +88,8 @@ module.exports = class extends think.Model {
    * @param payStatus
    * @returns {Promise.<boolean>}
    */
-  async updatePayStatus(orderId, payStatus = 0) {
-    return this.where({id: orderId}).limit(1).update({pay_status: parseInt(payStatus)});
+  async updatePayStatus(orderId, payStatus = 0, wxapp_id) {
+    return this.where({id: orderId, wxapp_id}).limit(1).update({pay_status: parseInt(payStatus)});
   }
 
   /**
@@ -96,10 +97,10 @@ module.exports = class extends think.Model {
    * @param orderSn
    * @returns {Promise.<Promise|Promise<any>|T|*>}
    */
-  async getOrderByOrderSn(orderSn) {
+  async getOrderByOrderSn(orderSn, wxapp_id) {
     if (think.isEmpty(orderSn)) {
       return {};
     }
-    return this.where({order_sn: orderSn}).find();
+    return this.where({order_sn: orderSn, wxapp_id}).find();
   }
 };

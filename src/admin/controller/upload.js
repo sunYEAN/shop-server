@@ -51,40 +51,40 @@ module.exports = class extends Base {
       url: 'http://127.0.0.1:8360' + upload_path + file_name
     });
   }
-  async brandPicAction() {
-    const brandFile = this.file('brand_pic');
-    if (think.isEmpty(brandFile)) {
-      return this.fail('保存失败');
-    }
-    const that = this;
-    const filename = '/static/upload/brand/' + think.uuid(32) + '.jpg';
-    const is = fs.createReadStream(brandFile.path);
-    const os = fs.createWriteStream(think.ROOT_PATH + '/www' + filename);
-    is.pipe(os);
-
-    return that.success({
-      name: 'brand_pic',
-      fileUrl: 'http://127.0.0.1:8360' + filename
-    });
-  }
-
-  async brandNewPicAction() {
-    const brandFile = this.file('brand_new_pic');
-    if (think.isEmpty(brandFile)) {
-      return this.fail('保存失败');
-    }
-    const that = this;
-    const filename = '/static/upload/brand/' + think.uuid(32) + '.jpg';
-
-    const is = fs.createReadStream(brandFile.path);
-    const os = fs.createWriteStream(think.ROOT_PATH + '/www' + filename);
-    is.pipe(os);
-
-    return that.success({
-      name: 'brand_new_pic',
-      fileUrl: 'http://127.0.0.1:8360' + filename
-    });
-  }
+  // async brandPicAction() {
+  //   const brandFile = this.file('brand_pic');
+  //   if (think.isEmpty(brandFile)) {
+  //     return this.fail('保存失败');
+  //   }
+  //   const that = this;
+  //   const filename = '/static/upload/brand/' + think.uuid(32) + '.jpg';
+  //   const is = fs.createReadStream(brandFile.path);
+  //   const os = fs.createWriteStream(think.ROOT_PATH + '/www' + filename);
+  //   is.pipe(os);
+  //
+  //   return that.success({
+  //     name: 'brand_pic',
+  //     fileUrl: 'http://127.0.0.1:8360' + filename
+  //   });
+  // }
+  //
+  // async brandNewPicAction() {
+  //   const brandFile = this.file('brand_new_pic');
+  //   if (think.isEmpty(brandFile)) {
+  //     return this.fail('保存失败');
+  //   }
+  //   const that = this;
+  //   const filename = '/static/upload/brand/' + think.uuid(32) + '.jpg';
+  //
+  //   const is = fs.createReadStream(brandFile.path);
+  //   const os = fs.createWriteStream(think.ROOT_PATH + '/www' + filename);
+  //   is.pipe(os);
+  //
+  //   return that.success({
+  //     name: 'brand_new_pic',
+  //     fileUrl: 'http://127.0.0.1:8360' + filename
+  //   });
+  // }
 
   async categoryWapBannerPicAction() {
     const imageFile = this.file('wap_banner_pic');

@@ -7,7 +7,8 @@ module.exports = class extends Base {
    * @return {Promise} []
    */
   async listAction() {
-    const orderList = await this.model('order').where({ user_id: this.getLoginUserId() }).page(1, 10).countSelect();
+    const user_id = this.getLoginUserId();
+    const orderList = await this.model('order').where({ user_id }).page(1, 10).countSelect();
     const newOrderList = [];
     for (const item of orderList.data) {
       // 订单的商品
@@ -31,8 +32,9 @@ module.exports = class extends Base {
   }
 
   async detailAction() {
+    const user_id = this.getLoginUserId();
     const orderId = this.get('orderId');
-    const orderInfo = await this.model('order').where({ user_id: this.getLoginUserId(), id: orderId }).find();
+    const orderInfo = await this.model('order').where({ user_id, id: orderId }).find();
 
     if (think.isEmpty(orderInfo)) {
       return this.fail('订单不存在');
@@ -77,6 +79,8 @@ module.exports = class extends Base {
    */
   async submitAction() {
     // 获取收货地址信息和计算运费
+    const wxapp_id = this.header('wxapp_id');
+    const user_id = this.getLoginUserId();
     const addressId = this.post('addressId');
     const checkedAddress = await this.model('address').where({ id: addressId }).find();
     if (think.isEmpty(checkedAddress)) {
@@ -85,7 +89,7 @@ module.exports = class extends Base {
     const freightPrice = 0.00;
 
     // 获取要购买的商品
-    const checkedGoodsList = await this.model('cart').where({ user_id: this.getLoginUserId(), session_id: 1, checked: 1 }).select();
+    const checkedGoodsList = await this.model('cart').where({ user_id, session_id: 1, checked: 1 }).select();
     if (think.isEmpty(checkedGoodsList)) {
       return this.fail('请选择商品');
     }
@@ -110,7 +114,7 @@ module.exports = class extends Base {
 
     const orderInfo = {
       order_sn: this.model('order').generateOrderNumber(),
-      user_id: this.getLoginUserId(),
+      user_id,
 
       // 收货地址和运费
       consignee: checkedAddress.name,
@@ -160,7 +164,7 @@ module.exports = class extends Base {
     }
 
     await this.model('order_goods').addMany(orderGoodsData);
-    await this.model('cart').clearBuyGoods(this.getLoginUserId());
+    await this.model('cart').clearBuyGoods(user_id, wxapp_id);
 
     return this.success({ orderInfo: orderInfo });
   }

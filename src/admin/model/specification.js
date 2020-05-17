@@ -1,26 +1,23 @@
+/**
+ * 规格
+ */
+
 module.exports = class extends think.Model {
-  /**
-   * 该good对应products商品列表
-   * 获取商品的product
-   * @param goods_id
-   * @param wxapp_id
-   * @returns {Promise.<*>}
-   */
-  async getProductList(goods_id, wxapp_id) {
-    return await this.model('product').where({
-      goods_id,
-      wxapp_id,
-    }).select();
-  }
 
   /**
-   * 获取商品的规格信息
-   * @param goods_id
-   * @param wxapp_id
-   * @returns {Promise.<Array>}
+   * 获取连接后的表格
+   * @returns {Promise<void>}
    */
-  async getSpecificationList(goods_id, wxapp_id) {
-    const specificationRes = await this.model('goods_specification').alias('gs')
+
+
+  // 获取单个商品的规格
+  async getGoodSpecificationList(goodsId) {
+    const query = {};
+    if (goodsId) {
+      query['goods_id'] = goodsId;
+    }
+    const specificationRes = await this.model('goods_specification')
+      .alias('gs')
       .field('gs.*, s.name')
       .join({
         table: 'specification',
@@ -28,11 +25,7 @@ module.exports = class extends think.Model {
         as: 's',
         on: ['specification_id', 'id']
       })
-      .where({
-        goods_id,
-        's.wxapp_id': wxapp_id
-      }).select();
-
+      .select();
 
     const specificationList = [];
     const hasSpecificationList = {};
@@ -56,5 +49,29 @@ module.exports = class extends think.Model {
       }
     }
     return specificationList;
+  }
+
+  /**
+   * 获取规格列表
+   * @returns {Promise<void>}
+   */
+  async getSpecificationList(specification_id) {
+    let query = {};
+
+    if (specification_id && specification_id != 0) {
+      query['specification_id'] = specification_id
+    }
+
+    return await this.model('goods_specification')
+        .alias('gs')
+        .field('gs.*, s.name')
+        .join({
+          table: 'specification',
+          join: 'inner',
+          as: 's',
+          on: ['specification_id', 'id']
+        })
+        .where(query)
+        .select();
   }
 };

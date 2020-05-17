@@ -1,7 +1,6 @@
 module.exports = class extends think.Model {
-  async getChildCategoryId(parentId) {
-    const childIds = await this.where({parent_id: parentId}).getField('id', 10000);
-    return childIds;
+  async getChildCategoryId(parent_id, wxapp_id) {
+    return await this.where({parent_id, is_delete: 0, wxapp_id}).getField('id', 10000);
   }
 
   async getCategoryWhereIn(categoryId) {

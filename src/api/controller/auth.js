@@ -5,8 +5,8 @@ module.exports = class extends Base {
     const code = this.post('code');
     const fullUserInfo = this.post('userInfo');
     const clientIp = this.ctx.ip;
-
-    const wxapp = this.ctx.state[this.header('wxapp_id') || ''] || {};
+    const wxapp_id = this.header('wxapp_id');
+    const wxapp = this.ctx.state[wxapp_id];
     // 解释用户数据
     const { errno, errmsg, data: userInfo } = await this.service('weixin', 'api').login(code, fullUserInfo, wxapp);
     if (errno !== 0) {
@@ -14,10 +14,11 @@ module.exports = class extends Base {
     }
 
     // 根据openid查找用户是否已经注册
-    let userId = await this.model('user').where({ weixin_openid: userInfo.openId }).getField('id', true);
+    let userId = await this.model('user').where({ weixin_openid: userInfo.openId, wxapp_id }).getField('id', true);
     if (think.isEmpty(userId)) {
       // 注册
       userId = await this.model('user').add({
+        wxapp_id: wxapp_id,
         username: '微信用户' + think.uuid(6),
         password: '',
         register_time: parseInt(new Date().getTime() / 1000),
@@ -31,10 +32,10 @@ module.exports = class extends Base {
     }
 
     // 查询用户信息
-    const newUserInfo = await this.model('user').field(['id', 'username', 'nickname', 'gender', 'avatar', 'birthday']).where({ id: userId }).find();
+    const newUserInfo = await this.model('user').field(['id', 'username', 'nickname', 'gender', 'avatar', 'birthday']).where({ id: userId, wxapp_id}).find();
 
     // 更新登录信息
-    await this.model('user').where({ id: userId }).update({
+    await this.model('user').where({ id: userId, wxapp_id}).update({
       last_login_time: parseInt(new Date().getTime() / 1000),
       last_login_ip: clientIp
     });

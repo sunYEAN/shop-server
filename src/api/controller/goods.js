@@ -2,8 +2,9 @@ const Base = require('./base.js');
 
 module.exports = class extends Base {
   async indexAction() {
+    const wxapp_id = this.header('wxapp_id');
     const model = this.model('goods');
-    const goodsList = await model.select();
+    const goodsList = await model.where({wxapp_id}).select();
 
     return this.success(goodsList);
   }
@@ -13,12 +14,13 @@ module.exports = class extends Base {
    * @returns {Promise.<Promise|PreventPromise|void>}
    */
   async skuAction() {
-    const goodsId = this.get('id');
     const model = this.model('goods');
+    const wxapp_id = this.header('wxapp_id');
+    const goods_id = this.get('id');
 
     return this.success({
-      specificationList: await model.getSpecificationList(goodsId),
-      productList: await model.getProductList(goodsId)
+      specificationList: await model.getSpecificationList(goods_id, wxapp_id),
+      productList: await model.getProductList(goods_id, wxapp_id)
     });
   }
 
@@ -27,19 +29,34 @@ module.exports = class extends Base {
    * @returns {Promise.<Promise|PreventPromise|void>}
    */
   async detailAction() {
-    const goodsId = this.get('id');
+    const goods_id = this.get('id');
+    const wxapp_id = this.header('wxapp_id');
+    const user_id = this.getLoginUserId();
     const model = this.model('goods');
 
-    const info = await model.where({'id': goodsId}).find();
-    const gallery = await this.model('goods_gallery').where({goods_id: goodsId}).limit(4).select();
-    const attribute = await this.model('goods_attribute').field('nideshop_goods_attribute.value, nideshop_attribute.name').join('nideshop_attribute ON nideshop_goods_attribute.attribute_id=nideshop_attribute.id').order({'nideshop_goods_attribute.id': 'asc'}).where({'nideshop_goods_attribute.goods_id': goodsId}).select();
-    const issue = await this.model('goods_issue').select();
-    const brand = await this.model('brand').where({id: info.brand_id}).find();
-    const commentCount = await this.model('comment').where({value_id: goodsId, type_id: 0}).count();
-    const hotComment = await this.model('comment').where({value_id: goodsId, type_id: 0}).find();
+    const info = await model.where({'id': goods_id, wxapp_id}).find();
+    const gallery = await this.model('goods_gallery').where({goods_id, wxapp_id}).limit(4).select();
+    const attribute = await this.model('goods_attribute')
+      .field('nideshop_goods_attribute.value, nideshop_attribute.name')
+      .join('nideshop_attribute ON nideshop_goods_attribute.attribute_id=nideshop_attribute.id')
+      .order({'nideshop_goods_attribute.id': 'asc'})
+      .where({'nideshop_goods_attribute.goods_id': goods_id, 'nideshop_goods_attribute.wxapp_id': wxapp_id})
+      .select();
+    const issue = await this.model('goods_issue').where({wxapp_id}).select();
+    const commentCount = await this.model('comment').where({value_id: goods_id, type_id: 0, wxapp_id}).count();
+    const hotComment = await this.model('comment').where({value_id: goods_id, type_id: 0, wxapp_id}).find();
     let commentInfo = {};
     if (!think.isEmpty(hotComment)) {
-      const commentUser = await this.model('user').field(['nickname', 'username', 'avatar']).where({id: hotComment.user_id}).find();
+
+      const commentUser = await this.model('user')
+        .field([
+          'avatar',
+          'nickname',
+          'username',
+        ])
+        .where({id: hotComment.user_id})
+        .find();
+
       commentInfo = {
         content: Buffer.from(hotComment.content, 'base64').toString(),
         add_time: think.datetime(new Date(hotComment.add_time * 1000)),
@@ -55,10 +72,10 @@ module.exports = class extends Base {
     };
 
     // 当前用户是否收藏
-    const userHasCollect = await this.model('collect').isUserHasCollect(this.getLoginUserId(), 0, goodsId);
+    const userHasCollect = await this.model('collect').isUserHasCollect(user_id, 0, goods_id, 0, wxapp_id);
 
     // 记录用户的足迹 TODO
-    await await this.model('footprint').addFootprint(this.getLoginUserId(), goodsId);
+    await await this.model('footprint').addFootprint(user_id, goods_id, wxapp_id);
 
     // return this.json(jsonData);
     return this.success({
@@ -68,9 +85,8 @@ module.exports = class extends Base {
       userHasCollect: userHasCollect,
       issue: issue,
       comment: comment,
-      brand: brand,
-      specificationList: await model.getSpecificationList(goodsId),
-      productList: await model.getProductList(goodsId)
+      specificationList: await model.getSpecificationList(goods_id, wxapp_id),
+      productList: await model.getProductList(goods_id, wxapp_id)
     });
   }
 
@@ -97,7 +113,6 @@ module.exports = class extends Base {
    */
   async listAction() {
     const categoryId = this.get('categoryId');
-    const brandId = this.get('brandId');
     const keyword = this.get('keyword');
     const isNew = this.get('isNew');
     const isHot = this.get('isHot');
@@ -124,10 +139,6 @@ module.exports = class extends Base {
         user_id: this.getLoginUserId(),
         add_time: parseInt(new Date().getTime() / 1000)
       });
-    }
-
-    if (!think.isEmpty(brandId)) {
-      whereMap.brand_id = brandId;
     }
 
     // 排序

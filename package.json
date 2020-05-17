@@ -22,6 +22,8 @@
     "think-logger3": "^1.0.0",
     "think-model": "^1.0.0",
     "think-model-mysql": "^1.0.0",
+    "think-session": "^1.1.5",
+    "think-session-file": "^1.1.2",
     "thinkjs": "^3.0.0",
     "weixinpay": "^1.0.12",
     "xml2js": "^0.4.19"

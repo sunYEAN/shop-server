@@ -8,11 +8,12 @@ module.exports = class extends Base {
    * @returns {Promise<void|Promise|PreventPromise>}
    */
   async deleteAction() {
+    const wxapp_id = this.header('wxapp_id');
     const footprintId = this.post('footprintId');
-    const userId = this.getLoginUserId();
+    const user_id = this.getLoginUserId();
     // 删除当天的同一个商品的足迹
-    const goods = await this.model('footprint').where({user_id: userId, id: footprintId}).find();
-    await this.model('footprint').where({user_id: userId, goods_id: goods.goods_id}).delete();
+    const goods = await this.model('footprint').where({user_id, id: footprintId, wxapp_id}).find();
+    await this.model('footprint').where({user_id, goods_id: goods.goods_id, wxapp_id}).delete();
 
     return this.success('删除成功');
   }
@@ -22,6 +23,8 @@ module.exports = class extends Base {
    * @return {Promise} []
    */
   async listAction() {
+    const wxapp_id = this.header('wxapp_id');
+    const user_id = this.getLoginUserId();
     const list = await this.model('footprint')
       .field(['f.*', 'g.name', 'g.list_pic_url', 'g.goods_brief', 'g.retail_price'])
       .alias('f')
@@ -30,7 +33,10 @@ module.exports = class extends Base {
         join: 'left',
         as: 'g',
         on: ['f.goods_id', 'g.id']
-      }).where({user_id: this.getLoginUserId()})
+      }).where({
+        user_id,
+        'nideshop_footprint.wxapp_id': wxapp_id
+      })
       .order({id: 'desc'})
       .countSelect();
 

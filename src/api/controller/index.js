@@ -2,24 +2,60 @@ const Base = require('./base.js');
 
 module.exports = class extends Base {
   async indexAction() {
-    const wxapp_id = this.header('wxapp_id');
+    let goods = this.model('goods'),
+      category = this.model('category'),
+      wxapp_id = this.header('wxapp_id');
     const banner = await this.model('ad').where({ad_position_id: 1, wxapp_id}).select();
-    const channel = await this.model('channel').where({wxapp_id}).order({sort_order: 'asc'}).select();
-    const newGoods = await this.model('goods').field(['id', 'name', 'list_pic_url', 'retail_price']).where({is_new: 1, wxapp_id}).limit(4).select();
-    const hotGoods = await this.model('goods').field(['id', 'name', 'list_pic_url', 'retail_price', 'goods_brief']).where({is_hot: 1, wxapp_id}).limit(3).select();
-    const brandList = await this.model('brand').where({is_new: 1, wxapp_id}).order({new_sort_order: 'asc'}).limit(4).select();
+    const channel = await this.model('channel').where({wxapp_id}).order('sort_order asc').select();
     const topicList = await this.model('topic').where({wxapp_id}).limit(3).select();
 
-    const categoryList = await this.model('category').where({parent_id: 0, name: ['<>', '推荐'], wxapp_id}).select();
-    const newCategoryList = [];
-    for (const categoryItem of categoryList) {
-      const childCategoryIds = await this.model('category').where({parent_id: categoryItem.id, wxapp_id}).getField('id', 100);
-      const categoryGoods = await this.model('goods').field(['id', 'name', 'list_pic_url', 'retail_price']).where({wxapp_id, category_id: ['IN', childCategoryIds]}).limit(7).select();
-      newCategoryList.push({
-        id: categoryItem.id,
-        name: categoryItem.name,
-        goodsList: categoryGoods
-      });
+    // 获取最新的商品
+    const newGoods = await goods
+      .field('id, name, list_pic_url, retail_price')
+      .where({is_new: 1, is_delete: 0, wxapp_id})
+      .limit(4)
+      .select();
+
+    // 获取最热门的商品
+    const hotGoods = await goods
+      .field('id ,name, list_pic_url, retail_price, goods_brief')
+      .where({is_hot: 1, is_delete: 0, wxapp_id})
+      .limit(4)
+      .select();
+
+    // 获取顶级分类列表
+    const supCategoryList = await category
+      .where({
+        wxapp_id,
+        parent_id: 0,
+        name: ['<>', '推荐'],
+        is_delete: 0,
+        is_show: 1
+      })
+      .order('sort_order asc')
+      .select();
+
+    // 分类列表
+    let newCategoryList = [];
+    for (const sup of supCategoryList) {
+      const childCategoryIds = await category.where({parent_id: sup.id}).getField('id', 100);
+      if (childCategoryIds.length) {
+        const categoryGoods = await goods
+          .field('id, name, list_pic_url, retail_price')
+          .where({
+            wxapp_id,
+            category_id: ['IN', childCategoryIds]
+          })
+          .limit(8)
+          .select();
+        if (categoryGoods.length) {
+          newCategoryList.push({
+            id: sup.id,
+            name: sup.name,
+            goodsList: categoryGoods
+          });
+        }
+      }
     }
 
     return this.success({
@@ -27,9 +63,8 @@ module.exports = class extends Base {
       channel: channel,
       newGoodsList: newGoods,
       hotGoodsList: hotGoods,
-      brandList: brandList,
       topicList: topicList,
-      categoryList: newCategoryList
+      categoryList: newCategoryList,
     });
   }
 };

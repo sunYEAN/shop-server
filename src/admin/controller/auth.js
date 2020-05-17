@@ -41,10 +41,28 @@ module.exports = class extends Base {
     return this.success({ token: sessionKey, userInfo: userInfo });
   }
   async adminInfoAction() {
-    const data = await this
-      .model('admin')
-      .field(['id', 'admin_role_id', 'avatar', 'add_time', 'update_time', 'username', 'last_login_ip'])
-      .where({id: this.getLoginAdminId()})
+    const admin_id = this.getLoginAdminId();
+    const data = await this.model('admin')
+      .alias('a')
+      .field([
+        'id',
+        'avatar',
+        'username',
+        'last_login_ip',
+        'last_login_time',
+        'admin_role_id',
+        'nideshop_wxapp.app_id',
+        'nideshop_wxapp.app_name',
+        'nideshop_wxapp.apikey',
+        'nideshop_wxapp.mchid',
+        'nideshop_wxapp.wxapp_id',
+      ])
+      .join({
+        on: ['wxapp_id', 'wxapp_id'],
+        join: 'right',
+        table: 'wxapp',
+      })
+      .where({'id': admin_id})
       .find();
     this.success(data);
   }
