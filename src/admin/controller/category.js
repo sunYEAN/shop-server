@@ -8,7 +8,6 @@ module.exports = class extends Base {
   async indexAction() {
     const model = this.model('category');
     const data = await model
-      .where({is_delete: 0})
       .order('sort_order asc')
       .select();
     const topCategory = data.filter((item) => {
