@@ -7,7 +7,7 @@ module.exports = class extends Base {
    */
   async indexAction() {
     const model = this.model('category');
-    const data = await model.where({is_delete: 0}).order(['sort_order ASC']).select();
+    const data = await model.order(['sort_order ASC']).select();
     const topCategory = data.filter((item) => {
       return item.parent_id === 0;
     });
